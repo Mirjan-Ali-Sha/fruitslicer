@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glossy Fruit Slicer - Offline</title>
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#84a59d"/>
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/Mirjan-Ali-Sha/fruitslicer/main/Fruit_Slicer-icon.png">
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Mirjan-Ali-Sha/fruitslicer/main/Fruit_Slicer-icon.png">
+    <link rel="manifest" id="manifest">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
+        body {
+            font-family: 'Fredoka One', cursive;
+            background: radial-gradient(circle, #84a59d, #3d405b);
+            touch-action: none; /* Disables browser gestures like pull-to-refresh */
+        }
+        .text-glow {
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5), 0 0 20px rgba(240, 72, 117, 0.8);
+        }
+        .btn-glossy {
+            background: linear-gradient(145deg, #f04875, #c93d62);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23), inset 0 -2px 5px rgba(0,0,0,0.3), inset 0 2px 5px rgba(255,255,255,0.5);
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-glossy:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22), inset 0 -2px 5px rgba(0,0,0,0.3), inset 0 2px 5px rgba(255,255,255,0.5);
+        }
+        .btn-glossy:active {
+            transform: translateY(2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2), 0 3px 3px rgba(0,0,0,0.15), inset 0 -2px 5px rgba(0,0,0,0.3), inset 0 2px 5px rgba(255,255,255,0.5);
+        }
+        canvas {
+            cursor: crosshair;
+            background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png'), radial-gradient(circle, #4a4e69, #22223b);
+            background-blend-mode: overlay;
+        }
+        .critical-text {
+            position: absolute;
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ffde59;
+            text-shadow: 0 0 10px #fff, 0 0 20px #ffc700, 0 0 30px #ff9a00;
+            opacity: 0;
+            transition: all 0.5s ease-out;
+            pointer-events: none;
+        }
+        /* Speed Slider Styles */
+        input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; background: transparent; cursor: pointer; }
+        input[type=range]::-webkit-slider-runnable-track { height: 12px; background: rgba(0,0,0,0.3); border-radius: 6px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; margin-top: -6px; height: 24px; width: 24px; background-color: #f04875; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.4); }
+        input[type=range]::-moz-range-track { height: 12px; background: rgba(0,0,0,0.3); border-radius: 6px; }
+        input[type=range]::-moz-range-thumb { height: 24px; width: 24px; background-color: #f04875; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.4); }
+    </style>
+</head>
+<body class="overflow-hidden flex items-center justify-center h-screen">
+
+    <div class="relative w-full h-full max-w-2xl max-h-[800px] flex items-center justify-center">
+        <canvas id="gameCanvas" class="rounded-2xl shadow-2xl"></canvas>
+
+        <div id="ui-container" class="absolute top-4 left-4 right-4 flex justify-between text-white text-3xl pointer-events-none">
+            <div id="score" class="bg-black/30 px-4 py-2 rounded-xl text-glow">Score: 0</div>
+            <div id="lives" class="bg-black/30 px-4 py-2 rounded-xl text-glow"></div>
+        </div>
+        
+        <div id="missed-indicator" class="absolute bottom-0 left-0 right-0 h-4 bg-red-600 opacity-0 transition-opacity duration-300"></div>
+        <div id="combo-display" class="absolute bottom-8 left-1/2 -translate-x-1/2 text-5xl text-yellow-300 text-glow transition-all duration-150 scale-0 origin-bottom" style="text-shadow: 0 0 15px rgba(253, 224, 71, 0.9);"></div>
+
+        <div id="modal" class="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center text-center text-white p-8 rounded-2xl">
+            <h1 id="modal-title" class="text-8xl font-bold text-glow mb-4">Fruit Slicer</h1>
+            <p id="modal-subtitle" class="text-2xl mb-8">Slice the fruits, avoid the bombs!</p>
+            <p id="final-score" class="text-5xl font-bold text-glow mb-8 hidden"></p>
+            <button id="startButton" class="btn-glossy text-4xl font-bold py-4 px-12 rounded-full border-4 border-white/50 mb-8">Start Game</button>
+            
+            <!-- Settings Panel -->
+            <div id="settings-panel" class="w-full max-w-md bg-black/30 p-4 rounded-xl flex flex-col gap-4">
+                <div class="flex items-center justify-between">
+                    <span id="sound-button" class="text-4xl cursor-pointer">🔊</span>
+                    <div class="flex-grow flex items-center gap-2 px-4">
+                        <span class="text-lg">Slow</span>
+                        <input type="range" id="speed-slider" min="0.5" max="1.5" step="0.1" value="1.0" class="w-full">
+                        <span class="text-lg">Fast</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = canvas.parentElement;
+        const modal = document.getElementById('modal');
+        const startButton = document.getElementById('startButton');
+        const scoreEl = document.getElementById('score');
+        const livesEl = document.getElementById('lives');
+        const comboDisplay = document.getElementById('combo-display');
+        const soundButton = document.getElementById('sound-button');
+        const speedSlider = document.getElementById('speed-slider');
+        
+        const MAX_LIVES = 5;
+        let gameState = 'start';
+        let score = 0, lives = MAX_LIVES, combo = 0, comboTimer = 0;
+        let missedFruitCounter = 0;
+        let fruits = [], particles = [], sliceTrail = [];
+        let isSlicing = false, audioInitialized = false;
+        let spawnRate = 120, spawnTimer = 0, gameLoopId = null;
+        const COMBO_TIMEOUT = 120;
+
+        let isMuted = false;
+        let speedMultiplier = 1.0;
+        let synth, critSynth, metalSynth, missedSynth, lifeSynth;
+
+        const fruitTypes = [
+            { emoji: '🍎', color: ['#ff4757', '#ff1f2e'] }, { emoji: '🍊', color: ['#ffa502', '#ff8c00'] },
+            { emoji: '🍉', color: ['#2ed573', '#1e9f50'] }, { emoji: '🥝', color: ['#a0522d', '#8b4513'] },
+            { emoji: '🍓', color: ['#ff6b81', '#ff4757'] }, { emoji: '🍌', color: ['#ffd32a', '#ffc400'] }
+        ];
+
+        function resizeCanvas() {
+            const size = Math.min(container.clientWidth, container.clientHeight, 800);
+            canvas.width = size; canvas.height = size;
+        }
+
+        function playSound(synthInstance, note, duration) {
+            if (audioInitialized && !isMuted && synthInstance) synthInstance.triggerAttackRelease(note, duration);
+        }
+
+        function initializeAudio() {
+            if (audioInitialized || typeof Tone === 'undefined') return;
+            Tone.start().then(() => {
+                synth = new Tone.Synth().toDestination();
+                critSynth = new Tone.PluckSynth({attackNoise: 0.5, dampening: 3000, resonance: 0.9}).toDestination();
+                metalSynth = new Tone.MetalSynth({ frequency: 50, envelope: { attack: 0.001, decay: 0.4, release: 0.2 }, harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5 }).toDestination();
+                missedSynth = new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 4, envelope: { attack: 0.001, decay: 0.2, sustain: 0 } }).toDestination();
+                lifeSynth = new Tone.Synth({ oscillator: { type: "sine" }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination();
+                audioInitialized = true;
+            }).catch(err => console.error("Audio could not be started:", err));
+        }
+
+        const handleSliceStart = (e) => { initializeAudio(); if (gameState !== 'playing') return; isSlicing = true; sliceTrail = []; addPointToTrail(e); };
+        const handleSliceMove = (e) => { if (isSlicing && gameState === 'playing') addPointToTrail(e); };
+        const handleSliceEnd = () => { isSlicing = false; };
+        
+        function addPointToTrail(e) {
+            const rect = canvas.getBoundingClientRect();
+            sliceTrail.push({ x: e.clientX - rect.left, y: e.clientY - rect.top, life: 20 });
+        }
+
+        function startGame() {
+            if (gameLoopId) cancelAnimationFrame(gameLoopId);
+            gameState = 'playing';
+            score = 0; lives = MAX_LIVES; fruits = []; particles = []; combo = 0;
+            missedFruitCounter = 0;
+            spawnRate = 120; spawnTimer = 0; comboTimer = 0;
+            updateUI(); updateComboUI();
+            modal.classList.add('hidden');
+            document.getElementById('final-score').classList.add('hidden');
+            gameLoop();
+        }
+
+        function gameOver() {
+            gameState = 'gameOver';
+            if (gameLoopId) { cancelAnimationFrame(gameLoopId); gameLoopId = null; }
+            combo = 0; updateComboUI();
+            modal.classList.remove('hidden');
+            document.getElementById('modal-title').textContent = 'Game Over';
+            document.getElementById('final-score').textContent = `Final Score: ${score}`;
+            document.getElementById('final-score').classList.remove('hidden');
+            startButton.textContent = 'Play Again';
+        }
+        
+        function updateUI() {
+            scoreEl.textContent = `Score: ${score}`;
+            let livesText = '❤️'.repeat(lives) + '🖤'.repeat(MAX_LIVES - lives);
+            if (missedFruitCounter > 0 && lives > 0 && gameState === 'playing') {
+                livesText += ` <span class="text-2xl text-red-300">Missed: ${missedFruitCounter}/5</span>`;
+            }
+            livesEl.innerHTML = livesText;
+        }
+        
+        function updateComboUI() {
+            if (combo > 1) {
+                comboDisplay.textContent = `${combo}x Combo!`;
+                comboDisplay.style.transform = 'translateX(-50%) scale(1.1)';
+                setTimeout(() => { if(comboDisplay) comboDisplay.style.transform = 'translateX(-50%) scale(1)'; }, 100);
+            } else { comboDisplay.style.transform = 'translateX(-50%) scale(0)'; }
+        }
+        
+        function showCriticalText(x, y) {
+            const critText = document.createElement('div');
+            critText.className = 'critical-text'; critText.textContent = 'CRITICAL!';
+            container.appendChild(critText);
+            critText.style.left = `${(x / canvas.width) * 100}%`; critText.style.top = `${(y / canvas.height) * 100}%`;
+            requestAnimationFrame(() => { critText.style.opacity = '1'; critText.style.transform = 'translate(-50%, -100%) scale(1.2)'; });
+            setTimeout(() => { critText.style.opacity = '0'; critText.style.transform = 'translate(-50%, -200%) scale(0.5)'; setTimeout(() => critText.remove(), 500); }, 500);
+        }
+
+        class Fruit {
+            constructor(x, y, radius, type, vx, vy) {
+                this.x = x; this.y = y; this.radius = radius; this.type = type; this.vx = vx; this.vy = vy;
+                this.gravity = 0.015 * (canvas.height / 500) * speedMultiplier;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.2;
+            }
+            update() { this.vy += this.gravity; this.x += this.vx; this.y += this.vy; this.rotation += this.rotationSpeed; }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.rotation);
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.4)'; ctx.shadowBlur = 15; ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
+                ctx.font = `${this.radius * 1.8}px Fredoka One`;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(this.type.emoji, 0, 0);
+                ctx.restore();
+            }
+        }
+        class Bomb extends Fruit { constructor(x, y, radius, vx, vy) { super(x, y, radius, { emoji: '💣', color: ['#666', '#000'] }, vx, vy); } }
+        class LifeFruit extends Fruit { constructor(x, y, radius, vx, vy) { super(x, y, radius, { emoji: '❤️', color: ['#ff4757', '#ff1f2e'] }, vx, vy); } }
+
+        class Particle {
+            constructor(x, y, radius, color, vx, vy) { this.x = x; this.y = y; this.radius = radius; this.color = color; this.vx = vx; this.vy = vy; this.gravity = 0.04 * (canvas.height / 500); this.life = 100; this.alpha = 1; }
+            update() { this.vy += this.gravity; this.x += this.vx; this.y += this.vy; this.life--; this.alpha = this.life / 100; }
+            draw() { ctx.save(); ctx.globalAlpha = this.alpha; const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius); g.addColorStop(0, this.color[0]); g.addColorStop(1, this.color[1]); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+        }
+
+        function spawnFruit() {
+            const radius = Math.random() * 20 + (canvas.width / 18);
+            const x = Math.random() * (canvas.width - radius * 2) + radius; const y = canvas.height + radius;
+            const angle = Math.random() * (Math.PI / 2) + Math.PI / 4;
+            const speed = (Math.random() * 2 + 2.5) * (canvas.height / 500) * speedMultiplier;
+            const vx = Math.cos(angle) * speed * (Math.random() < 0.5 ? 1 : -1); const vy = -Math.sin(angle) * speed;
+            if (lives < MAX_LIVES && Math.random() < 0.05) fruits.push(new LifeFruit(x, y, radius, vx, vy));
+            else if (Math.random() < 0.15 && score > 30) fruits.push(new Bomb(x, y, radius, vx, vy));
+            else fruits.push(new Fruit(x, y, radius, fruitTypes[Math.floor(Math.random() * fruitTypes.length)], vx, vy));
+        }
+
+        function createSliceParticles(fruit, isCritical) {
+            isCritical ? playSound(critSynth, "C5", "8n") : playSound(synth, "C5", "8n");
+            const count = isCritical ? 40 : 15; const speed = isCritical ? 1.5 : 1;
+            for (let i = 0; i < count; i++) {
+                const vx = (Math.random() - 0.5) * 6 * speed; const vy = (Math.random() - 0.5) * 6 * speed;
+                const color = isCritical ? ['#ffff00', fruit.type.color[0]] : fruit.type.color;
+                particles.push(new Particle(fruit.x, fruit.y, Math.random() * 4 + 2, color, vx, vy));
+            }
+        }
+        function createExplosion(bomb) { playSound(metalSynth, "C1", "1n"); for (let i = 0; i < 50; i++) { const a = Math.random() * Math.PI * 2; const s = Math.random() * 10 + 2; particles.push(new Particle(bomb.x, bomb.y, Math.random() * 8 + 3, ['#ff4500', '#8b0000', '#333'], Math.cos(a) * s, Math.sin(a) * s)); } }
+
+        function gameLoop() {
+            if (gameState !== 'playing') { gameLoopId = null; return; };
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (comboTimer > 0) comboTimer--; else if (combo > 0) { combo = 0; updateComboUI(); }
+            if (++spawnTimer >= spawnRate) { spawnTimer = 0; spawnFruit(); if (spawnRate > 30) spawnRate -= 0.5; }
+            for (let i = fruits.length - 1; i >= 0; i--) {
+                const fruit = fruits[i]; fruit.update();
+                if (fruit.y > canvas.height + fruit.radius * 2) {
+                    if (!(fruit instanceof Bomb) && !(fruit instanceof LifeFruit)) {
+                       missedFruitCounter++;
+                       combo = 0; updateComboUI(); playSound(missedSynth, "C2", "8n");
+                       document.getElementById('missed-indicator').style.opacity = '0.7';
+                       setTimeout(() => document.getElementById('missed-indicator').style.opacity = '0', 200);
+                       
+                       if (missedFruitCounter >= 5) {
+                           lives--;
+                           missedFruitCounter = 0;
+                       }
+
+                       updateUI(); if (lives <= 0) gameOver();
+                    }
+                    fruits.splice(i, 1);
+                }
+            }
+            for(let i = particles.length - 1; i >= 0; i--) { if(--particles[i].life <= 0) particles.splice(i, 1); else particles[i].update(); }
+            for(let i = sliceTrail.length - 1; i >= 0; i--) { if(--sliceTrail[i].life <= 0) sliceTrail.splice(i, 1); }
+            if (isSlicing && sliceTrail.length > 0) {
+                for (let i = fruits.length - 1; i >= 0; i--) {
+                    const fruit = fruits[i];
+                    for (let j = 0; j < sliceTrail.length; j++) {
+                        const point = sliceTrail[j]; const dist = Math.hypot(fruit.x - point.x, fruit.y - point.y);
+                        if (dist < fruit.radius * 1.5) {
+                            if (fruit instanceof Bomb) { createExplosion(fruit); gameOver(); }
+                            else if (fruit instanceof LifeFruit) {
+                                if (lives < MAX_LIVES) lives++;
+                                playSound(lifeSynth, "G5", "4n");
+                                score += 50; updateUI();
+                            } else {
+                               const isCritical = dist < fruit.radius * 0.3;
+                               if(isCritical) showCriticalText(fruit.x, fruit.y);
+                               createSliceParticles(fruit, isCritical); combo++; comboTimer = COMBO_TIMEOUT;
+                               let points = (isCritical ? 20 : 10) + (combo > 2 ? (combo - 2) * 5 : 0);
+                               score += points; updateUI(); updateComboUI();
+                            }
+                            fruits.splice(i, 1); break;
+                        }
+                    }
+                }
+            }
+            fruits.forEach(f => f.draw()); particles.forEach(p => p.draw());
+            if (sliceTrail.length > 1) { ctx.beginPath(); ctx.moveTo(sliceTrail[0].x, sliceTrail[0].y); sliceTrail.forEach(p => ctx.lineTo(p.x, p.y)); ctx.strokeStyle = "rgba(255, 255, 255, 0.7)"; ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); }
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        function saveSettings() {
+            const settings = { isMuted, speedMultiplier };
+            localStorage.setItem('fruitSlicerSettings', JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('fruitSlicerSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                isMuted = settings.isMuted ?? false;
+                speedMultiplier = settings.speedMultiplier ?? 1.0;
+            }
+            soundButton.textContent = isMuted ? '🔇' : '🔊';
+            speedSlider.value = speedMultiplier;
+        }
+
+        function setupPWA() {
+            // 1. Create Manifest Blob
+            const manifest = {
+                "name": "Glossy Fruit Slicer", "short_name": "Fruit Slicer", "start_url": ".", "display": "standalone",
+                "background_color": "#3d405b", "theme_color": "#84a59d", "description": "A simple fruit slicing game that can be played offline.",
+                "icons": [
+                    { "src": "https://raw.githubusercontent.com/Mirjan-Ali-Sha/fruitslicer/main/Fruit_Slicer-icon.png", "sizes": "192x192", "type": "image/png" },
+                    { "src": "https://raw.githubusercontent.com/Mirjan-Ali-Sha/fruitslicer/main/Fruit_Slicer-icon.png", "sizes": "512x512", "type": "image/png" }
+                ]
+            };
+            const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+            const manifestURL = URL.createObjectURL(manifestBlob);
+            document.querySelector('#manifest').setAttribute('href', manifestURL);
+
+            // 2. Create and Register Service Worker
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    const CACHE_NAME = 'fruit-slicer-cache-v1';
+                    const urlsToCache = [
+                        '.',
+                        'https://cdn.tailwindcss.com',
+                        'https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.min.js',
+                        'https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap',
+                        'https://www.transparenttextures.com/patterns/wood-pattern.png',
+                        'https://raw.githubusercontent.com/Mirjan-Ali-Sha/fruitslicer/main/Fruit_Slicer-icon.png'
+                    ];
+                    self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))));
+                    self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
+                `;
+                const swBlob = new Blob([swCode], {type: 'application/javascript'});
+                const swURL = URL.createObjectURL(swBlob);
+                navigator.serviceWorker.register(swURL)
+                    .then(reg => console.log('Service worker registered.', reg))
+                    .catch(err => console.error('Service worker registration failed:', err));
+            }
+        }
+
+        function main() {
+            loadSettings();
+            setupPWA();
+            updateUI();
+            resizeCanvas();
+            startButton.addEventListener('click', startGame);
+            soundButton.addEventListener('click', () => { isMuted = !isMuted; soundButton.textContent = isMuted ? '🔇' : '🔊'; playSound(synth, "C4", "8n"); saveSettings(); });
+            speedSlider.addEventListener('input', (e) => { speedMultiplier = parseFloat(e.target.value); saveSettings(); });
+            window.addEventListener('resize', resizeCanvas);
+            canvas.addEventListener('mousedown', handleSliceStart); canvas.addEventListener('mousemove', handleSliceMove); window.addEventListener('mouseup', handleSliceEnd);
+            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleSliceStart(e.touches[0]); }, { passive: false });
+            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleSliceMove(e.touches[0]); }, { passive: false });
+            window.addEventListener('touchend', handleSliceEnd);
+        }
+
+        main();
+    </script>
+</body>
+</html>
+
