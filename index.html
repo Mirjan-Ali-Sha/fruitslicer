@@ -118,16 +118,16 @@
         function levelUp(){if(currentLevel<levels.length-1){currentLevel++;const indicator=document.getElementById('level-up-indicator');indicator.style.opacity='1';setTimeout(()=>indicator.style.opacity='0',1500);}
         updateUI();}
         
-        class Fruit{constructor(x,y,r,t,vx,vy){this.x=x;this.y=y;this.radius=r;this.type=t;this.vx=vx;this.vy=vy;this.gravity=0.012*(canvas.height/500)*speedMultiplier;this.rotation=Math.random()*Math.PI*2;this.rotationSpeed=(Math.random()-0.5)*0.2;this.hasEnteredPlayArea=false;}
+        class Fruit{constructor(x,y,r,t,vx,vy){this.x=x;this.y=y;this.radius=r;this.type=t;this.vx=vx;this.vy=vy;this.gravity=0.012*Math.sqrt(canvas.height/500)*speedMultiplier;this.rotation=Math.random()*Math.PI*2;this.rotationSpeed=(Math.random()-0.5)*0.2;this.hasEnteredPlayArea=false;}
         update(){this.vy+=this.gravity;this.x+=this.vx;this.y+=this.vy;this.rotation+=this.rotationSpeed;}
         draw(){ctx.save();ctx.translate(this.x,this.y);ctx.rotate(this.rotation);ctx.shadowColor='rgba(0,0,0,0.4)';ctx.shadowBlur=15;ctx.shadowOffsetX=5;ctx.shadowOffsetY=5;ctx.font=`${this.radius*1.8}px Fredoka One`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(this.type.emoji,0,0);ctx.restore();}}
         class Bomb extends Fruit{constructor(x,y,r,vx,vy,bombType){super(x,y,r,{emoji:bombType.emoji,color:bombType.color},vx,vy);this.damage=bombType.damage;}}
         class LifeFruit extends Fruit{constructor(x,y,r,vx,vy){super(x,y,r,{emoji:'❤️',color:['#f00','#c00']},vx,vy);}}
-        class Particle{constructor(x,y,r,c,vx,vy){this.x=x;this.y=y;this.radius=r;this.color=c;this.vx=vx;this.vy=vy;this.gravity=0.04*(canvas.height/500);this.life=100;this.alpha=1;}
+        class Particle{constructor(x,y,r,c,vx,vy){this.x=x;this.y=y;this.radius=r;this.color=c;this.vx=vx;this.vy=vy;this.gravity=0.04*Math.sqrt(canvas.height/500);this.life=100;this.alpha=1;}
         update(){this.vy+=this.gravity;this.x+=this.vx;this.y+=this.vy;this.life--;this.alpha=this.life/100;}
         draw(){ctx.save();ctx.globalAlpha=this.alpha;const g=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.radius);g.addColorStop(0,this.color[0]);g.addColorStop(1,this.color[1]);ctx.fillStyle=g;ctx.beginPath();ctx.arc(this.x,this.y,this.radius,0,Math.PI*2);ctx.fill();ctx.restore();}}
         
-        function spawnFruit(){const levelInfo=levels[currentLevel]||levels[levels.length-1];const side=levelInfo.directions[Math.floor(Math.random()*levelInfo.directions.length)];const r=Math.random()*20+(canvas.width/18);let x,y,vx,vy;const baseSpeed=(Math.random()*2+2.0)*(canvas.height/500)*speedMultiplier;
+        function spawnFruit(){const levelInfo=levels[currentLevel]||levels[levels.length-1];const side=levelInfo.directions[Math.floor(Math.random()*levelInfo.directions.length)];const r=Math.random()*20+(canvas.width/18);let x,y,vx,vy;const baseSpeed=(Math.random()*2+2.0)*Math.sqrt(canvas.height/500)*speedMultiplier;
         switch(side){case'top':x=Math.random()*(canvas.width-r*2)+r;y=-r;vx=(Math.random()-0.5)*baseSpeed;vy=baseSpeed;break;case'left':x=-r;y=Math.random()*(canvas.height-r*2)+r;vx=baseSpeed;vy=(Math.random()-0.5)*baseSpeed;break;case'right':x=canvas.width+r;y=Math.random()*(canvas.height-r*2)+r;vx=-baseSpeed;vy=(Math.random()-0.5)*baseSpeed;break;default:x=Math.random()*(canvas.width-r*2)+r;y=canvas.height+r;const a=Math.random()*(Math.PI/2)+Math.PI/4;vx=Math.cos(a)*baseSpeed*(Math.random()<0.5?1:-1);vy=-Math.sin(a)*baseSpeed;break;}
         const bombChance=0.15+(currentLevel*0.005);if(lives<MAX_LIVES&&Math.random()<0.05)fruits.push(new LifeFruit(x,y,r,vx,vy));
         else if(Math.random()<bombChance&&score>30){const availableBombs=bombTypes.filter(b=>currentLevel>=b.minLevel);const bombType=availableBombs[Math.floor(Math.random()*availableBombs.length)];fruits.push(new Bomb(x,y,r,vx,vy,bombType));}
@@ -161,11 +161,18 @@
         speedSlider.value=speedMultiplier;}
         function saveGameState(){localStorage.setItem('fruitSlicerSaveState',JSON.stringify({score,level:currentLevel}));}
         function loadGameState(){const s=localStorage.getItem('fruitSlicerSaveState');if(s)return JSON.parse(s);return null;}
-        function setupPWA(){const m={"name":"Glossy Fruit Slicer","short_name":"Fruit Slicer","start_url":".","display":"standalone","background_color":"#3d405b","theme_color":"#3d405b","description":"A juicy fruit slicing game.","icons":[{"src":"https://raw.githubusercontent.com/Mirjan-Ali-Sha/fruitslicer/main/Fruit_Slicer-icon.png","sizes":"192x192","type":"image/png"}]};const mb=new Blob([JSON.stringify(m)],{type:'application/json'});document.querySelector('#manifest').setAttribute('href',URL.createObjectURL(mb));if('serviceWorker'in navigator){const sc=`const CN='fruit-slicer-cache-v11';self.addEventListener('install',e=>e.waitUntil(caches.open(CN).then(c=>c.addAll(['.','https://cdn.tailwindcss.com','https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap']))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;const sb=new Blob([sc],{type:'application/javascript'});navigator.serviceWorker.register(URL.createObjectURL(sb));}}
+        function setupPWA(){const m={"name":"Glossy Fruit Slicer","short_name":"Fruit Slicer","start_url":".","display":"standalone","background_color":"#3d405b","theme_color":"#3d405b","description":"A juicy fruit slicing game.","icons":[{"src":"https://raw.githubusercontent.com/Mirjan-Ali-Sha/fruitslicer/main/Fruit_Slicer-icon.png","sizes":"192x192","type":"image/png"}]};const mb=new Blob([JSON.stringify(m)],{type:'application/json'});document.querySelector('#manifest').setAttribute('href',URL.createObjectURL(mb));if('serviceWorker'in navigator){const sc=`const CN='fruit-slicer-cache-v12';self.addEventListener('install',e=>e.waitUntil(caches.open(CN).then(c=>c.addAll(['.','https://cdn.tailwindcss.com','https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap']))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;const sb=new Blob([sc],{type:'application/javascript'});navigator.serviceWorker.register(URL.createObjectURL(sb));}}
         
         function main(){loadSettings();setupPWA();resizeCanvas();
         setTimeout(()=>{const s=document.getElementById('splash-screen');s.classList.add('hidden');const savedState=loadGameState();if(savedState&&savedState.score>0){configureModal('resume',savedState);}else{configureModal('start');}
         s.addEventListener('animationend',()=>{if(s.style.opacity==0)s.style.display='none';},{once:true});},3000);
+        
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden' && gameState === 'playing') {
+                pauseGame();
+            }
+        });
+
         startButton.addEventListener('click',()=>{if(gameState==='paused')resumeGame({paused:true});else resetGame(true);});
         resetButton.addEventListener('click',()=>{resetGame(true);configureModal('start');});
         resumeButton.addEventListener('click',()=>resumeGame(loadGameState()));
