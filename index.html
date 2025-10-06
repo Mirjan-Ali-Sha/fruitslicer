@@ -97,11 +97,22 @@
             directions: ['bottom', i > 0 && 'left', i > 1 && 'right', i > 3 && 'top'].filter(Boolean),
         }));
         const bombTypes = [
-            { emoji: '💣', damage: 1, minLevel: 0, color: ['#666', '#000'] }, { emoji: '💥', damage: 2, minLevel: 10, color: ['#ff8c00', '#ff4500'] },
-            { emoji: '☠️', damage: 3, minLevel: 20, color: ['#a9a9a9', '#696969'] }, { emoji: '🌋', damage: 4, minLevel: 30, color: ['#8b0000', '#4b0082'] },
+            { emoji: '💣', damage: 1, minLevel: 0, color: ['#666', '#000'] }, 
+            { emoji: '💥', damage: 2, minLevel: 10, color: ['#ff8c00', '#ff4500'] },
+            { emoji: '☠️', damage: 3, minLevel: 20, color: ['#a9a9a9', '#696969'] }, 
+            { emoji: '🌋', damage: 4, minLevel: 30, color: ['#8b0000', '#4b0082'] },
             { emoji: '☢️', damage: 5, minLevel: 40, color: ['#9acd32', '#556b2f'] }
         ];
-        const fruitTypes=[{emoji:'🍎',color:['#ff4757','#ff1f2e']},{emoji:'🍊',color:['#ffa502','#ff8c00']},{emoji:'🍉',color:['#2ed573','#1e9f50']},{emoji:'🥝',color:['#a0522d','#8b4513']},{emoji:'🍓',color:['#ff6b81','#ff4757']},{emoji:'🍌',color:['#ffd32a','#ffc400']}];
+        const fruitTypes=[
+            {emoji:'🍎',color:['#ff4757','#ff1f2e']}, {emoji:'🍊',color:['#ffa502','#ff8c00']},
+            {emoji:'🍉',color:['#2ed573','#1e9f50']}, {emoji:'🥝',color:['#a0522d','#8b4513']},
+            {emoji:'🍓',color:['#ff6b81','#ff4757']}, {emoji:'🍌',color:['#ffd32a','#ffc400']},
+            {emoji:'🍍',color:['#f9d71c','#e1ad01']}, {emoji:'🍇',color:['#6f2da8','#4b0082']},
+            {emoji:'🍑',color:['#ffdab9','#ffc0cb']}, {emoji:'🍒',color:['#d2042d','#8b0000']},
+            {emoji:'🍐',color:['#9acd32','#6b8e23']}, {emoji:'🥭',color:['#ffbf00','#ff8c00']}, 
+            {emoji:'🫐',color:['#464196','#2e2b64']}, {emoji:'🥑',color:['#568203','#355e01']}, 
+            {emoji:'🥥',color:['#964B00','#654321']}, {emoji:'🍋',color:['#fff44f','#ffeb3b']}
+        ];
 
         function resizeCanvas(){canvas.width=container.clientWidth;canvas.height=container.clientHeight;}
         const handleSliceStart=(e)=>{inactivityTimer=0;if(gameState!=='playing')return;isSlicing=true;sliceTrail=[];addPointToTrail(e);};
