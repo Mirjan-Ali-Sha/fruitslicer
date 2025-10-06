@@ -19,6 +19,7 @@
         .btn-glossy { background: linear-gradient(145deg, #f04875, #c93d62); box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23), inset 0 -2px 5px rgba(0,0,0,0.3), inset 0 2px 5px rgba(255,255,255,0.5); transition: all 0.2s ease-in-out; }
         .btn-glossy:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22), inset 0 -2px 5px rgba(0,0,0,0.3), inset 0 2px 5px rgba(255,255,255,0.5); }
         .btn-glossy-green { background: linear-gradient(145deg, #2ed573, #1e9f50); }
+        .btn-glossy-blue { background: linear-gradient(145deg, #5c67f2, #4a54e2); }
         canvas { cursor: crosshair; background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png'), radial-gradient(circle, #4a4e69, #22223b); background-blend-mode: overlay; width: 100%; height: 100%; }
         #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(circle, #84a59d, #3d405b); z-index: 100; animation: fadeIn 0.5s ease-in-out; color: white; text-align: center; }
         .splash-item { opacity: 0; animation: popIn 0.8s 0.2s ease-out forwards; }
@@ -44,17 +45,15 @@
     <div id="game-container" class="relative w-full h-full max-w-2xl">
         <canvas id="gameCanvas" class="rounded-none sm:rounded-2xl shadow-2xl"></canvas>
 
-        <div id="ui-container" class="absolute top-4 left-0 right-0 px-4 flex justify-between items-start text-white text-lg sm:text-2xl gap-2 pointer-events-none">
-            <div id="score-level-info" class="bg-black/30 px-4 py-2 rounded-xl text-glow flex-shrink-0"></div>
-            <div class="bg-black/30 px-4 py-2 rounded-xl text-glow flex flex-col items-end">
-                <div id="lives"></div>
-                <div id="missed" class="text-base sm:text-xl text-red-300 hidden"></div>
-            </div>
+        <div id="score-level-info" class="absolute top-4 left-4 bg-black/30 px-4 py-2 rounded-xl text-glow text-lg sm:text-2xl flex-shrink-0 pointer-events-none"></div>
+        <div class="absolute top-4 right-4 bg-black/30 px-4 py-2 rounded-xl text-glow flex flex-col items-end text-lg sm:text-2xl pointer-events-none">
+            <div id="lives"></div>
+            <div id="missed" class="text-base sm:text-xl text-red-300 hidden"></div>
         </div>
         
         <div id="level-up-indicator" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-7xl text-yellow-300 text-glow opacity-0 transition-opacity duration-500 pointer-events-none">Level Up!</div>
         <div id="combo-display" class="absolute bottom-8 left-1/2 -translate-x-1/2 text-5xl text-yellow-300 text-glow transition-all duration-150 scale-0 origin-bottom" style="text-shadow: 0 0 15px rgba(253, 224, 71, 0.9);"></div>
-        
+
         <button id="saveButton" class="absolute bottom-4 right-4 bg-transparent border-2 border-white/50 text-white/80 hover:bg-white/10 text-lg px-4 py-1 rounded-lg hidden pointer-events-auto transition-colors">Save</button>
 
         <div id="modal" class="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center text-center text-white p-4 sm:p-8 invisible">
