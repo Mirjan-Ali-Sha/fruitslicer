@@ -19,7 +19,8 @@
         .btn-glossy { background: linear-gradient(145deg, #f04875, #c93d62); box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23), inset 0 -2px 5px rgba(0,0,0,0.3), inset 0 2px 5px rgba(255,255,255,0.5); transition: all 0.2s ease-in-out; }
         .btn-glossy:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22), inset 0 -2px 5px rgba(0,0,0,0.3), inset 0 2px 5px rgba(255,255,255,0.5); }
         .btn-glossy-green { background: linear-gradient(145deg, #2ed573, #1e9f50); }
-        .btn-glossy-blue { background: linear-gradient(145deg, #5c67f2, #4a54e2); }
+        .btn-secondary { background: transparent; border: 2px solid rgba(255,255,255,0.5); transition: all 0.2s ease-in-out; }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
         canvas { cursor: crosshair; background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png'), radial-gradient(circle, #4a4e69, #22223b); background-blend-mode: overlay; width: 100%; height: 100%; }
         #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(circle, #84a59d, #3d405b); z-index: 100; animation: fadeIn 0.5s ease-in-out; color: white; text-align: center; }
         .splash-item { opacity: 0; animation: popIn 0.8s 0.2s ease-out forwards; }
@@ -31,6 +32,11 @@
         input[type=range] { width: 100%; background: transparent; cursor: pointer; }
         input[type=range]::-webkit-slider-runnable-track { height: 12px; background: rgba(0,0,0,0.3); border-radius: 6px; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; margin-top: -6px; height: 24px; width: 24px; background-color: #f04875; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.4); }
+        
+        /* This is the fix for the scrolling issue */
+        #instruction-content {
+            touch-action: auto;
+        }
     </style>
 </head>
 <body class="overflow-hidden flex justify-center h-screen">
@@ -53,9 +59,28 @@
         
         <div id="level-up-indicator" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-7xl text-yellow-300 text-glow opacity-0 transition-opacity duration-500 pointer-events-none">Level Up!</div>
         <div id="combo-display" class="absolute bottom-8 left-1/2 -translate-x-1/2 text-5xl text-yellow-300 text-glow transition-all duration-150 scale-0 origin-bottom" style="text-shadow: 0 0 15px rgba(253, 224, 71, 0.9);"></div>
-
-        <!-- Save Button Commented Out As Per User Request -->
-        <!-- <button id="saveButton" class="absolute bottom-4 right-4 bg-transparent border-2 border-white/50 text-white/80 hover:bg-white/10 text-lg px-4 py-1 rounded-lg hidden pointer-events-auto transition-colors">Save</button> -->
+        
+        <div id="instruction-modal" class="absolute inset-0 bg-black/70 backdrop-blur-md flex flex-col items-center justify-center text-center text-white p-4 sm:p-8 invisible">
+            <h1 class="text-5xl sm:text-6xl font-bold text-glow mb-6">How to Play</h1>
+            <div id="instruction-content" class="space-y-4 text-lg max-w-2xl text-left overflow-y-auto max-h-[60vh] p-4">
+                <div class="flex items-center gap-4"><span class="text-4xl">✨</span><div><span class="font-bold text-yellow-300">Sparkling Fruit:</span> Slice for a 100 point bonus! They become more common in higher levels.</div></div>
+                <div class="flex items-center gap-4"><span class="text-4xl">❤️</span><div><span class="font-bold text-red-400">Heart:</span> Slice to regain one lost life.</div></div>
+                <div class="flex items-center gap-4"><span class="text-4xl">💣</span><div><span class="font-bold">Bombs:</span> Avoid slicing bombs! Different bombs have different penalties as you reach higher levels.</div></div>
+                <div class="pl-12 space-y-2">
+                    <div>💣 (Lv 1+) = -1 Life</div>
+                    <div>💥 (Lv 10+) = -2 Lives</div>
+                    <div>☠️ (Lv 20+) = -3 Lives</div>
+                    <div>🌋 (Lv 30+) = -4 Lives</div>
+                    <div>☢️ (Lv 40+) = -5 Lives (Game Over!)</div>
+                </div>
+                <div class="flex items-center gap-4"><span class="text-4xl">⏱️</span><div><span class="font-bold">Auto-Pause:</span> The game will automatically pause after 12 seconds of inactivity.</div></div>
+                <div class="flex items-center gap-4"><span class="text-4xl">🏆</span><div><span class="font-bold">Get Your Badge:</span> After a level up or game over, enter your name to download a personalized badge!</div></div>
+            </div>
+            <div class="flex gap-4 mt-8">
+                <button id="hideInstructionsButton" class="btn-secondary text-xl font-bold py-3 px-8 rounded-full">Never Show Again</button>
+                <button id="closeInstructionsButton" class="btn-glossy text-xl font-bold py-3 px-8 rounded-full">Got it!</button>
+            </div>
+        </div>
 
         <div id="modal" class="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center text-center text-white p-4 sm:p-8 invisible">
             <h1 id="modal-title" class="text-6xl sm:text-8xl font-bold text-glow mb-4">Fruit Slicer</h1>
@@ -76,7 +101,8 @@
                 <button id="resumeButton" class="btn-glossy btn-glossy-green text-2xl font-bold py-3 px-8 rounded-full border-4 border-white/50">Resume</button>
                 <button id="resetButton" class="btn-glossy text-2xl font-bold py-3 px-8 rounded-full border-4 border-white/50">Reset</button>
             </div>
-            <button id="startButton" class="btn-glossy text-2xl sm:text-4xl font-bold py-4 px-12 rounded-full border-4 border-white/50 mb-8">Start Game</button>
+            <button id="startButton" class="btn-glossy text-2xl sm:text-4xl font-bold py-4 px-12 rounded-full border-4 border-white/50 mb-6">Start Game</button>
+            <button id="guideButton" class="btn-secondary text-xl font-bold py-2 px-6 rounded-full mb-8">User Guide</button>
             <div id="settings-panel" class="w-full max-w-md bg-black/30 p-4 rounded-xl flex flex-col gap-4">
                 <div class="flex items-center justify-center">
                      <div class="flex-grow flex items-center gap-2 px-4">
@@ -91,7 +117,8 @@
 
     <script>
         const canvas=document.getElementById('gameCanvas');const ctx=canvas.getContext('2d');const container=document.getElementById('game-container');const modal=document.getElementById('modal');const startButton=document.getElementById('startButton');const scoreLevelInfoEl=document.getElementById('score-level-info');const livesEl=document.getElementById('lives');const missedEl=document.getElementById('missed');const comboDisplay=document.getElementById('combo-display');const finalScoreEl=document.getElementById('final-score');const resumeInfo=document.getElementById('resume-info');const resumeButtons=document.getElementById('resume-buttons');const resumeButton=document.getElementById('resumeButton');const resetButton=document.getElementById('resetButton');const speedSlider=document.getElementById('speed-slider');const badgeCreator=document.getElementById('badge-creator');const nameInput=document.getElementById('nameInput');const getBadgeButton=document.getElementById('getBadgeButton');
-        const MAX_LIVES=5;const MAX_PARTICLES=300;const INACTIVITY_TIMEOUT=12*60;let gameState='start';let score=0,lives=MAX_LIVES,combo=0,currentLevel=0;let missedFruitCounter=0;let fruits=[],particles=[],sliceTrail=[];let isSlicing=false;let spawnTimer=0,gameLoopId=null,inactivityTimer=0;let speedMultiplier=1.0;
+        const instructionModal = document.getElementById('instruction-modal'); const hideInstructionsButton = document.getElementById('hideInstructionsButton'); const closeInstructionsButton = document.getElementById('closeInstructionsButton'); const guideButton = document.getElementById('guideButton');
+        const MAX_LIVES=5;const MAX_PARTICLES=200;const INACTIVITY_TIMEOUT=12*60;let gameState='start';let score=0,lives=MAX_LIVES,combo=0,currentLevel=0;let missedFruitCounter=0;let fruits=[],particles=[],sliceTrail=[];let isSlicing=false;let spawnTimer=0,gameLoopId=null,inactivityTimer=0;let speedMultiplier=1.0;
         
         const levels = Array.from({ length: 50 }, (_, i) => ({
             target: Math.floor(200 * Math.pow(1.5, i)),
@@ -116,42 +143,31 @@
 
         function resizeCanvas(){canvas.width=container.clientWidth;canvas.height=container.clientHeight;}
         
-        function addPointToTrail(e){
-            inactivityTimer = 0;
-            const rect = canvas.getBoundingClientRect();
-            const point = e.touches ? e.touches[0] : e;
-            if (point) {
-                sliceTrail.push({x: point.clientX - rect.left, y: point.clientY - rect.top, life: 20});
-            }
-        }
+        function addPointToTrail(e){inactivityTimer=0;const rect=canvas.getBoundingClientRect();const point=e.touches?e.touches[0]:e;if(point){sliceTrail.push({x:point.clientX-rect.left,y:point.clientY-rect.top,life:20});}}
         const handleSliceStart=(e)=>{inactivityTimer=0;if(gameState!=='playing')return;isSlicing=true;sliceTrail=[];addPointToTrail(e);};
         const handleSliceMove=(e)=>{inactivityTimer=0;if(isSlicing&&gameState==='playing')addPointToTrail(e);};
         const handleSliceEnd=()=>{isSlicing=false;};
         
-        function configureModal(type, state=null){finalScoreEl.classList.add('hidden');resumeInfo.classList.add('hidden');resumeButtons.classList.add('hidden');badgeCreator.classList.add('hidden');startButton.classList.remove('hidden');document.getElementById('settings-panel').style.display='flex';
-        if(type==='start'){document.getElementById('modal-title').textContent='Fruit Slicer';startButton.textContent='Start Game';}else if(type==='resume'){document.getElementById('modal-title').textContent='Fruit Slicer';resumeInfo.classList.remove('hidden');resumeButtons.classList.remove('hidden');startButton.classList.add('hidden');document.getElementById('resume-level').textContent=state.level+1;document.getElementById('resume-score').textContent=state.score;}else if(type==='gameOver'){document.getElementById('modal-title').textContent='Game Over';startButton.textContent='Play Again';finalScoreEl.textContent=`Final Score: ${score}`;finalScoreEl.classList.remove('hidden');badgeCreator.classList.remove('hidden');}else if(type==='levelUp'){document.getElementById('modal-title').textContent=`Level ${currentLevel+1} Complete!`;startButton.textContent='Continue';finalScoreEl.textContent=`Score: ${score}`;finalScoreEl.classList.remove('hidden');badgeCreator.classList.remove('hidden');}else if(type==='pause'){if(state&&state.reason==='manualSave'){document.getElementById('modal-title').textContent='Game Saved!';}else{document.getElementById('modal-title').textContent='Paused';}
-        startButton.textContent='Resume';document.getElementById('settings-panel').style.display='none';}
-        modal.classList.remove('invisible');}
+        function configureModal(type, state=null){
+            [modal, instructionModal].forEach(m => m.classList.add('invisible'));
+            
+            if (type === 'instructions') {
+                instructionModal.classList.remove('invisible');
+                return;
+            }
+
+            finalScoreEl.classList.add('hidden');resumeInfo.classList.add('hidden');resumeButtons.classList.add('hidden');badgeCreator.classList.add('hidden');startButton.classList.remove('hidden');document.getElementById('settings-panel').style.display='flex';
+            if(type==='start'){document.getElementById('modal-title').textContent='Fruit Slicer';startButton.textContent='Start Game';}else if(type==='resume'){document.getElementById('modal-title').textContent='Fruit Slicer';resumeInfo.classList.remove('hidden');resumeButtons.classList.remove('hidden');startButton.classList.add('hidden');document.getElementById('resume-level').textContent=state.level+1;document.getElementById('resume-score').textContent=state.score;}else if(type==='gameOver'){document.getElementById('modal-title').textContent='Game Over';startButton.textContent='Play Again';finalScoreEl.textContent=`Final Score: ${score}`;finalScoreEl.classList.remove('hidden');badgeCreator.classList.remove('hidden');}else if(type==='levelUp'){document.getElementById('modal-title').textContent=`Level ${currentLevel+1} Complete!`;startButton.textContent='Continue';finalScoreEl.textContent=`Score: ${score}`;finalScoreEl.classList.remove('hidden');badgeCreator.classList.remove('hidden');}else if(type==='pause'){if(state&&state.reason==='manualSave'){document.getElementById('modal-title').textContent='Game Saved!';}else{document.getElementById('modal-title').textContent='Paused';}
+            startButton.textContent='Resume';document.getElementById('settings-panel').style.display='none';}
+            modal.classList.remove('invisible');
+        }
         
         function startGame(){if(gameLoopId)cancelAnimationFrame(gameLoopId);gameState='playing';updateUI();modal.classList.add('invisible');gameLoop();}
         function resetGame(isNewGame=true){score=0;lives=MAX_LIVES;currentLevel=0;missedFruitCounter=0;combo=0;spawnTimer=0;fruits=[];particles=[];if(isNewGame){localStorage.removeItem('fruitSlicerSaveState');startGame();}}
         
         function resumeGame(savedState) {
-            if (gameState === 'paused' || (savedState && savedState.paused)) {
-                gameState = 'playing';
-                inactivityTimer = 0;
-                modal.classList.add('invisible');
-                gameLoop();
-                return;
-            }
-            if (savedState) {
-                score = savedState.score;
-                currentLevel = savedState.level;
-                lives = savedState.lives;
-                missedFruitCounter = savedState.missed;
-                combo = 0; spawnTimer = 0; fruits = []; particles = [];
-                startGame();
-            }
+            if (gameState === 'paused' || (savedState && savedState.paused)) {gameState='playing';inactivityTimer=0;modal.classList.add('invisible');gameLoop();return;}
+            if (savedState){score=savedState.score;currentLevel=savedState.level;lives=savedState.lives;missedFruitCounter=savedState.missed;combo=0;spawnTimer=0;fruits=[];particles=[];startGame();}
         }
         
         function pauseGame(reason='inactivity'){if(gameState!=='playing')return;gameState='paused';if(gameLoopId){cancelAnimationFrame(gameLoopId);gameLoopId=null;}
@@ -167,6 +183,12 @@
         class Fruit{constructor(x,y,r,t,vx,vy){this.x=x;this.y=y;this.radius=r;this.type=t;this.vx=vx;this.vy=vy;this.gravity=0.012*Math.sqrt(canvas.height/500)*speedMultiplier;this.rotation=Math.random()*Math.PI*2;this.rotationSpeed=(Math.random()-0.5)*0.2;this.hasEnteredPlayArea=false;}
         update(){this.vy+=this.gravity;this.x+=this.vx;this.y+=this.vy;this.rotation+=this.rotationSpeed;}
         draw(){ctx.save();ctx.translate(this.x,this.y);ctx.rotate(this.rotation);ctx.shadowColor='rgba(0,0,0,0.4)';ctx.shadowBlur=15;ctx.shadowOffsetX=5;ctx.shadowOffsetY=5;ctx.font=`${this.radius*1.8}px Fredoka One`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(this.type.emoji,0,0);ctx.restore();}}
+        
+        class SparklingFruit extends Fruit {
+            constructor(x, y, r, t, vx, vy) {super(x, y, r, t, vx, vy);this.sparkles=[];for(let i=0;i<10;i++){this.sparkles.push({angle:Math.random()*Math.PI*2,dist:Math.random()*this.radius*1.5,alpha:Math.random(),speed:Math.random()*0.02+0.02});}}
+            draw() {super.draw();ctx.save();ctx.translate(this.x,this.y);ctx.rotate(this.rotation);this.sparkles.forEach(s=>{const x=Math.cos(s.angle)*s.dist;const y=Math.sin(s.angle)*s.dist;s.alpha+=s.speed;if(s.alpha>1)s.alpha=0;ctx.fillStyle=`rgba(255,255,150,${Math.sin(s.alpha*Math.PI)})`;ctx.beginPath();ctx.arc(x,y,2,0,Math.PI*2);ctx.fill();});ctx.restore();}
+        }
+        
         class Bomb extends Fruit{constructor(x,y,r,vx,vy,bombType){super(x,y,r,{emoji:bombType.emoji,color:bombType.color},vx,vy);this.damage=bombType.damage;}}
         class LifeFruit extends Fruit{constructor(x,y,r,vx,vy){super(x,y,r,{emoji:'❤️',color:['#f00','#c00']},vx,vy);}}
         class Particle{constructor(x,y,r,c,vx,vy){this.x=x;this.y=y;this.radius=r;this.color=c;this.vx=vx;this.vy=vy;this.gravity=0.04*Math.sqrt(canvas.height/500);this.life=100;this.alpha=1;}
@@ -175,55 +197,19 @@
         
         function spawnFruit(){const levelInfo=levels[currentLevel]||levels[levels.length-1];const side=levelInfo.directions[Math.floor(Math.random()*levelInfo.directions.length)];const r=Math.random()*20+(canvas.width/18);let x,y,vx,vy;
         const baseSpeed=(Math.random()*1.0 + 2.8)*Math.sqrt(canvas.height/500)*speedMultiplier;
-        
         switch(side){case'top':x=Math.random()*(canvas.width-r*2)+r;y=-r;vx=(Math.random()-0.5)*baseSpeed;vy=baseSpeed;break;case'left':x=-r;y=Math.random()*(canvas.height-r*2)+r;vx=baseSpeed;vy=(Math.random()-0.5)*baseSpeed;break;case'right':x=canvas.width+r;y=Math.random()*(canvas.height-r*2)+r;vx=-baseSpeed;vy=(Math.random()-0.5)*baseSpeed;break;default:x=Math.random()*(canvas.width-r*2)+r;y=canvas.height+r;
-        const a = (Math.random() * (Math.PI / 3)) + (Math.PI / 3); // Range: 60 to 120 degrees
-        vx=Math.cos(a)*baseSpeed*(Math.random()<0.5?1:-1);vy=-Math.sin(a)*baseSpeed;break;}
-        const bombChance=0.15+(currentLevel*0.005);if(lives<MAX_LIVES&&Math.random()<0.05)fruits.push(new LifeFruit(x,y,r,vx,vy));
+        const a=(Math.random()*(Math.PI/3))+(Math.PI/3);vx=Math.cos(a)*baseSpeed*(Math.random()<0.5?1:-1);vy=-Math.sin(a)*baseSpeed;break;}
+        const sparklingChance=0.02+(currentLevel*0.001);const bombChance=0.15+(currentLevel*0.005);
+        if(Math.random()<sparklingChance){fruits.push(new SparklingFruit(x,y,r,fruitTypes[Math.floor(Math.random()*fruitTypes.length)],vx,vy));}
+        else if(lives<MAX_LIVES&&Math.random()<0.05)fruits.push(new LifeFruit(x,y,r,vx,vy));
         else if(Math.random()<bombChance&&score>30){const availableBombs=bombTypes.filter(b=>currentLevel>=b.minLevel);const bombType=availableBombs[Math.floor(Math.random()*availableBombs.length)];fruits.push(new Bomb(x,y,r,vx,vy,bombType));}
         else fruits.push(new Fruit(x,y,r,fruitTypes[Math.floor(Math.random()*fruitTypes.length)],vx,vy));}
         
         function createParticles(fruit,count,colors){if(particles.length>=MAX_PARTICLES)return;
         for(let i=0;i<count;i++){const vx=(Math.random()-0.5)*6;const vy=(Math.random()-0.5)*6;particles.push(new Particle(fruit.x,fruit.y,Math.random()*4+2,colors,vx,vy));}}
         
-        async function generateAndDownloadBadge() {
-            const name = nameInput.value || 'Player';
-            localStorage.setItem('fruitSlicerPlayerName', name);
-            const badgeCanvas = document.createElement('canvas');
-            badgeCanvas.width = 800; badgeCanvas.height = 600;
-            const badgeCtx = badgeCanvas.getContext('2d');
-
-            const bgGradient = badgeCtx.createRadialGradient(400, 300, 0, 400, 300, 500);
-            bgGradient.addColorStop(0, '#84a59d'); bgGradient.addColorStop(1, '#3d405b');
-            badgeCtx.fillStyle = bgGradient; badgeCtx.fillRect(0, 0, 800, 600);
-
-            try {
-                const img = new Image();
-                img.crossOrigin = "anonymous";
-                img.src = "https://raw.githubusercontent.com/Mirjan-Ali-Sha/fruitslicer/main/Fruit_Slicer-icon.png";
-                await img.decode();
-                badgeCtx.drawImage(img, 336, 50, 128, 128);
-            } catch (e) { console.error("Could not load badge icon.", e); }
-            
-            badgeCtx.font = "bold 70px 'Fredoka One', cursive"; badgeCtx.fillStyle = "white"; badgeCtx.textAlign = "center";
-            badgeCtx.shadowColor = 'rgba(240, 72, 117, 0.8)'; badgeCtx.shadowBlur = 15;
-            badgeCtx.fillText(name, 400, 250);
-
-            badgeCtx.shadowBlur = 0;
-            badgeCtx.font = "40px 'Fredoka One', cursive"; badgeCtx.fillStyle = "rgba(255, 255, 255, 0.8)";
-            const statusText = gameState === 'gameOver' ? 'Game Over' : `Level ${currentLevel + 1} Cleared!`;
-            badgeCtx.fillText(statusText, 400, 320);
-
-            badgeCtx.font = "bold 50px 'Fredoka One', cursive"; badgeCtx.fillStyle = "#facc15";
-            badgeCtx.fillText(`Score: ${score}`, 400, 400);
-
-            badgeCtx.font = "20px 'Fredoka One', cursive"; badgeCtx.fillStyle = "rgba(255, 255, 255, 0.6)";
-            badgeCtx.fillText("Fruit Slicer by Mirjan Ali Sha", 400, 550);
-
-            const dataUrl = badgeCanvas.toDataURL('image/png');
-            const a = document.createElement('a');
-            a.href = dataUrl; a.download = `FruitSlicer-Badge-Level-${currentLevel+1}.png`; a.click();
-        }
+        async function generateAndDownloadBadge() {const name=nameInput.value||'Player';localStorage.setItem('fruitSlicerPlayerName',name);const badgeCanvas=document.createElement('canvas');badgeCanvas.width=800;badgeCanvas.height=600;const badgeCtx=badgeCanvas.getContext('2d');const bgGradient=badgeCtx.createRadialGradient(400,300,0,400,300,500);bgGradient.addColorStop(0,'#84a59d');bgGradient.addColorStop(1,'#3d405b');badgeCtx.fillStyle=bgGradient;badgeCtx.fillRect(0,0,800,600);try{const img=new Image();img.crossOrigin="anonymous";img.src="https://raw.githubusercontent.com/Mirjan-Ali-Sha/fruitslicer/main/Fruit_Slicer-icon.png";await img.decode();badgeCtx.drawImage(img,336,50,128,128);}catch(e){console.error("Could not load badge icon.",e);}
+        badgeCtx.font="bold 70px 'Fredoka One',cursive";badgeCtx.fillStyle="white";badgeCtx.textAlign="center";badgeCtx.shadowColor='rgba(240,72,117,0.8)';badgeCtx.shadowBlur=15;badgeCtx.fillText(name,400,250);badgeCtx.shadowBlur=0;badgeCtx.font="40px 'Fredoka One',cursive";badgeCtx.fillStyle="rgba(255,255,255,0.8)";const statusText=gameState==='gameOver'?'Game Over':`Level ${currentLevel+1} Cleared!`;badgeCtx.fillText(statusText,400,320);badgeCtx.font="bold 50px 'Fredoka One',cursive";badgeCtx.fillStyle="#facc15";badgeCtx.fillText(`Score: ${score}`,400,400);badgeCtx.font="20px 'Fredoka One',cursive";badgeCtx.fillStyle="rgba(255,255,255,0.6)";badgeCtx.fillText("Fruit Slicer by Mirjan Ali Sha",400,550);const dataUrl=badgeCanvas.toDataURL('image/png');const a=document.createElement('a');a.href=dataUrl;a.download=`FruitSlicer-Badge-Level-${currentLevel+1}.png`;a.click();}
 
         function gameLoop(){if(gameState!=='playing'){gameLoopId=null;return;};inactivityTimer++;if(inactivityTimer>INACTIVITY_TIMEOUT){pauseGame();return;}
         ctx.clearRect(0,0,canvas.width,canvas.height);if(++spawnTimer>=100){spawnTimer=0;spawnFruit();}
@@ -235,7 +221,7 @@
         for(let i=particles.length-1;i>=0;i--){if(--particles[i].life<=0)particles.splice(i,1);else particles[i].update();}
         for(let i=sliceTrail.length-1;i>=0;i--){if(--sliceTrail[i].life<=0)sliceTrail.splice(i,1);}
         if(isSlicing&&sliceTrail.length>0){for(let i=fruits.length-1;i>=0;i--){const f=fruits[i];for(let j=0;j<sliceTrail.length;j++){const p=sliceTrail[j];const d=Math.hypot(f.x-p.x,f.y-p.y);if(d<f.radius*1.5){if(f instanceof Bomb){createParticles(f,50,f.type.color);lives-=f.damage;if(lives<=0){lives=0;gameOver();}
-        updateUI();}else if(f instanceof LifeFruit){if(lives<MAX_LIVES)lives++;score+=50;updateUI();}else{createParticles(f,15,f.type.color);let pts=10;score+=pts;if(score>=(levels[currentLevel]||levels[levels.length-1]).target)levelUp();updateUI();}
+        updateUI();}else if(f instanceof LifeFruit){if(lives<MAX_LIVES)lives++;score+=50;updateUI();}else if (f instanceof SparklingFruit){createParticles(f,40,['#ffff00','#ffd700']);score+=100;updateUI();}else{createParticles(f,15,f.type.color);let pts=10;score+=pts;if(score>=(levels[currentLevel]||levels[levels.length-1]).target)levelUp();updateUI();}
         fruits.splice(i,1);break;}}}}
         fruits.forEach(f=>f.draw());particles.forEach(p=>p.draw());
         if(sliceTrail.length>1){ctx.beginPath();ctx.moveTo(sliceTrail[0].x,sliceTrail[0].y);sliceTrail.forEach(p=>ctx.lineTo(p.x,p.y));ctx.strokeStyle="rgba(255,255,255,0.7)";ctx.lineWidth=10;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();}
@@ -249,26 +235,51 @@
         function setupPWA(){const m={"name":"Fruit Slicer - Offline","short_name":"Fruit Slicer","start_url":".","display":"standalone","background_color":"#3d405b","theme_color":"#3d405b","description":"A relaxing, fruity escape.","icons":[{"src":"https://raw.githubusercontent.com/Mirjan-Ali-Sha/fruitslicer/main/Fruit_Slicer-icon.png","sizes":"192x192","type":"image/png"}]};const mb=new Blob([JSON.stringify(m)],{type:'application/json'});document.querySelector('#manifest').setAttribute('href',URL.createObjectURL(mb));if('serviceWorker'in navigator){const sc=`const CN='fruit-slicer-cache-v16';self.addEventListener('install',e=>e.waitUntil(caches.open(CN).then(c=>c.addAll(['.','https://cdn.tailwindcss.com','https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap']))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;const sb=new Blob([sc],{type:'application/javascript'});navigator.serviceWorker.register(URL.createObjectURL(sb));}}
         
         function main(){loadSettings();setupPWA();resizeCanvas();
-        setTimeout(()=>{const s=document.getElementById('splash-screen');s.classList.add('hidden');const savedState=loadGameState();
-        if(savedState){
-            configureModal('resume',savedState);
-        } else {
-            configureModal('start');
+        setTimeout(()=>{
+            const splash = document.getElementById('splash-screen');
+            splash.classList.add('hidden');
+            
+            const showInstructions = !localStorage.getItem('hideInstructions');
+            
+            if (showInstructions) {
+                configureModal('instructions');
+            } else {
+                const savedState = loadGameState();
+                if (savedState) {
+                    configureModal('resume', savedState);
+                } else {
+                    configureModal('start');
+                }
+            }
+            nameInput.value = localStorage.getItem('fruitSlicerPlayerName') || '';
+            splash.addEventListener('animationend',()=>{if(splash.style.opacity==0)splash.style.display='none';},{once:true});
+        },3000);
+        
+        function showMainMenu() {
+            const savedState = loadGameState();
+            if (savedState) {
+                configureModal('resume', savedState);
+            } else {
+                configureModal('start');
+            }
         }
-        nameInput.value = localStorage.getItem('fruitSlicerPlayerName') || '';
-        s.addEventListener('animationend',()=>{if(s.style.opacity==0)s.style.display='none';},{once:true});},3000);
+
+        closeInstructionsButton.addEventListener('click', () => {
+            instructionModal.classList.add('invisible');
+            showMainMenu();
+        });
+        hideInstructionsButton.addEventListener('click', () => {
+            localStorage.setItem('hideInstructions', 'true');
+            instructionModal.classList.add('invisible');
+            showMainMenu();
+        });
+        guideButton.addEventListener('click', () => configureModal('instructions'));
         
         document.addEventListener('visibilitychange', ()=>{if(document.visibilityState==='hidden'&&gameState==='playing'){pauseGame();}});
         startButton.addEventListener('click',()=>{if(gameState==='paused'||gameState==='levelUp')resumeGame({paused:true});else resetGame(true);});
         resetButton.addEventListener('click',()=>{resetGame(true);configureModal('start');});
         resumeButton.addEventListener('click',()=>resumeGame(loadGameState()));
         speedSlider.addEventListener('input',(e)=>{speedMultiplier=parseFloat(e.target.value);saveSettings();});
-        
-        const saveButton = document.getElementById('saveButton');
-        if (saveButton) {
-            saveButton.addEventListener('click', () => { if(gameState === 'playing') { saveGameState(); pauseGame('manualSave'); } });
-        }
-
         getBadgeButton.addEventListener('click', generateAndDownloadBadge);
         window.addEventListener('resize',resizeCanvas);
         canvas.addEventListener('mousedown',handleSliceStart);canvas.addEventListener('mousemove',handleSliceMove);window.addEventListener('mouseup',handleSliceEnd);
