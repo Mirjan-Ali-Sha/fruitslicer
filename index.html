@@ -116,7 +116,14 @@
 
         function resizeCanvas(){canvas.width=container.clientWidth;canvas.height=container.clientHeight;}
         
-        function addPointToTrail(e){inactivityTimer=0;const rect=canvas.getBoundingClientRect();sliceTrail.push({x:e.clientX-rect.left,y:e.clientY-rect.top,life:20});}
+        function addPointToTrail(e){
+            inactivityTimer = 0;
+            const rect = canvas.getBoundingClientRect();
+            const point = e.touches ? e.touches[0] : e;
+            if (point) {
+                sliceTrail.push({x: point.clientX - rect.left, y: point.clientY - rect.top, life: 20});
+            }
+        }
         const handleSliceStart=(e)=>{inactivityTimer=0;if(gameState!=='playing')return;isSlicing=true;sliceTrail=[];addPointToTrail(e);};
         const handleSliceMove=(e)=>{inactivityTimer=0;if(isSlicing&&gameState==='playing')addPointToTrail(e);};
         const handleSliceEnd=()=>{isSlicing=false;};
@@ -253,7 +260,6 @@
         resumeButton.addEventListener('click',()=>resumeGame(loadGameState()));
         speedSlider.addEventListener('input',(e)=>{speedMultiplier=parseFloat(e.target.value);saveSettings();});
         
-        // This was missing
         const saveButton = document.getElementById('saveButton');
         if (saveButton) {
             saveButton.addEventListener('click', () => { if(gameState === 'playing') { saveGameState(); pauseGame('manualSave'); } });
@@ -262,8 +268,8 @@
         getBadgeButton.addEventListener('click', generateAndDownloadBadge);
         window.addEventListener('resize',resizeCanvas);
         canvas.addEventListener('mousedown',handleSliceStart);canvas.addEventListener('mousemove',handleSliceMove);window.addEventListener('mouseup',handleSliceEnd);
-        canvas.addEventListener('touchstart',(e)=>{e.preventDefault();if(e.touches[0])handleSliceStart(e.touches[0]);},{passive:false});
-        canvas.addEventListener('touchmove',(e)=>{e.preventDefault();if(e.touches[0])handleSliceMove(e.touches[0]);},{passive:false});
+        canvas.addEventListener('touchstart',(e)=>{e.preventDefault();handleSliceStart(e);},{passive:false});
+        canvas.addEventListener('touchmove',(e)=>{e.preventDefault();handleSliceMove(e);},{passive:false});
         window.addEventListener('touchend',handleSliceEnd);}
         main();
     </script>
