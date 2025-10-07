@@ -42,8 +42,8 @@
         <p class="splash-item author text-lg text-white/60 absolute bottom-5">by Mirjan Ali Sha</p>
     </div>
 
-    <div id="game-container" class="relative w-full h-full max-w-2xl">
-        <canvas id="gameCanvas" class="rounded-none sm:rounded-2xl shadow-2xl"></canvas>
+    <div id="game-container" class="relative w-full h-full max-w-2xl p-2 sm:p-0">
+        <canvas id="gameCanvas" class="rounded-2xl shadow-2xl"></canvas>
 
         <div id="score-level-info" class="absolute top-4 left-4 bg-black/30 px-4 py-2 rounded-xl text-glow text-lg sm:text-2xl flex-shrink-0 pointer-events-none"></div>
         <div class="absolute top-4 right-4 bg-black/30 px-4 py-2 rounded-xl text-glow flex flex-col items-end text-lg sm:text-2xl pointer-events-none">
@@ -54,7 +54,7 @@
         <div id="level-up-indicator" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-7xl text-yellow-300 text-glow opacity-0 transition-opacity duration-500 pointer-events-none">Level Up!</div>
         <div id="combo-display" class="absolute bottom-8 left-1/2 -translate-x-1/2 text-5xl text-yellow-300 text-glow transition-all duration-150 scale-0 origin-bottom" style="text-shadow: 0 0 15px rgba(253, 224, 71, 0.9);"></div>
 
-        <button id="saveButton" class="absolute bottom-4 right-4 bg-transparent border-2 border-white/50 text-white/80 hover:bg-white/10 text-lg px-4 py-1 rounded-lg hidden pointer-events-auto transition-colors">Save</button>
+        <!-- <button id="saveButton" class="absolute bottom-4 right-4 bg-transparent border-2 border-white/50 text-white/80 hover:bg-white/10 text-lg px-4 py-1 rounded-lg hidden pointer-events-auto transition-colors">Save</button> -->
 
         <div id="modal" class="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center text-center text-white p-4 sm:p-8 invisible">
             <h1 id="modal-title" class="text-6xl sm:text-8xl font-bold text-glow mb-4">Fruit Slicer</h1>
@@ -97,10 +97,8 @@
             directions: ['bottom', i > 0 && 'left', i > 1 && 'right', i > 3 && 'top'].filter(Boolean),
         }));
         const bombTypes = [
-            { emoji: '💣', damage: 1, minLevel: 0, color: ['#666', '#000'] }, 
-            { emoji: '💥', damage: 2, minLevel: 10, color: ['#ff8c00', '#ff4500'] },
-            { emoji: '☠️', damage: 3, minLevel: 20, color: ['#a9a9a9', '#696969'] }, 
-            { emoji: '🌋', damage: 4, minLevel: 30, color: ['#8b0000', '#4b0082'] },
+            { emoji: '💣', damage: 1, minLevel: 0, color: ['#666', '#000'] }, { emoji: '💥', damage: 2, minLevel: 10, color: ['#ff8c00', '#ff4500'] },
+            { emoji: '☠️', damage: 3, minLevel: 20, color: ['#a9a9a9', '#696969'] }, { emoji: '🌋', damage: 4, minLevel: 30, color: ['#8b0000', '#4b0082'] },
             { emoji: '☢️', damage: 5, minLevel: 40, color: ['#9acd32', '#556b2f'] }
         ];
         const fruitTypes=[
@@ -109,9 +107,10 @@
             {emoji:'🍓',color:['#ff6b81','#ff4757']}, {emoji:'🍌',color:['#ffd32a','#ffc400']},
             {emoji:'🍍',color:['#f9d71c','#e1ad01']}, {emoji:'🍇',color:['#6f2da8','#4b0082']},
             {emoji:'🍑',color:['#ffdab9','#ffc0cb']}, {emoji:'🍒',color:['#d2042d','#8b0000']},
-            {emoji:'🍐',color:['#9acd32','#6b8e23']}, {emoji:'🥭',color:['#ffbf00','#ff8c00']}, 
-            {emoji:'🫐',color:['#464196','#2e2b64']}, {emoji:'🥑',color:['#568203','#355e01']}, 
-            {emoji:'🥥',color:['#964B00','#654321']}, {emoji:'🍋',color:['#fff44f','#ffeb3b']}
+            {emoji:'🍐',color:['#9acd32','#6b8e23']},
+            {emoji:'🥭',color:['#ffbf00','#ff8c00']}, {emoji:'🫐',color:['#464196','#2e2b64']},
+            {emoji:'🥑',color:['#568203','#355e01']}, {emoji:'🥥',color:['#964B00','#654321']},
+            {emoji:'🍋',color:['#fff44f','#ffeb3b']}
         ];
 
         function resizeCanvas(){canvas.width=container.clientWidth;canvas.height=container.clientHeight;}
@@ -257,4 +256,5 @@
     </script>
 </body>
 </html>
+
 
