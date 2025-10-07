@@ -19,7 +19,6 @@
         .btn-glossy { background: linear-gradient(145deg, #f04875, #c93d62); box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23), inset 0 -2px 5px rgba(0,0,0,0.3), inset 0 2px 5px rgba(255,255,255,0.5); transition: all 0.2s ease-in-out; }
         .btn-glossy:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22), inset 0 -2px 5px rgba(0,0,0,0.3), inset 0 2px 5px rgba(255,255,255,0.5); }
         .btn-glossy-green { background: linear-gradient(145deg, #2ed573, #1e9f50); }
-        .btn-glossy-blue { background: linear-gradient(145deg, #5c67f2, #4a54e2); }
         canvas { cursor: crosshair; background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png'), radial-gradient(circle, #4a4e69, #22223b); background-blend-mode: overlay; width: 100%; height: 100%; }
         #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(circle, #84a59d, #3d405b); z-index: 100; animation: fadeIn 0.5s ease-in-out; color: white; text-align: center; }
         .splash-item { opacity: 0; animation: popIn 0.8s 0.2s ease-out forwards; }
@@ -54,8 +53,6 @@
         <div id="level-up-indicator" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-7xl text-yellow-300 text-glow opacity-0 transition-opacity duration-500 pointer-events-none">Level Up!</div>
         <div id="combo-display" class="absolute bottom-8 left-1/2 -translate-x-1/2 text-5xl text-yellow-300 text-glow transition-all duration-150 scale-0 origin-bottom" style="text-shadow: 0 0 15px rgba(253, 224, 71, 0.9);"></div>
 
-        <!-- <button id="saveButton" class="absolute bottom-4 right-4 bg-transparent border-2 border-white/50 text-white/80 hover:bg-white/10 text-lg px-4 py-1 rounded-lg hidden pointer-events-auto transition-colors">Save</button> -->
-
         <div id="modal" class="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center text-center text-white p-4 sm:p-8 invisible">
             <h1 id="modal-title" class="text-6xl sm:text-8xl font-bold text-glow mb-4">Fruit Slicer</h1>
             
@@ -89,7 +86,7 @@
     </div>
 
     <script>
-        const canvas=document.getElementById('gameCanvas');const ctx=canvas.getContext('2d');const container=document.getElementById('game-container');const modal=document.getElementById('modal');const startButton=document.getElementById('startButton');const scoreLevelInfoEl=document.getElementById('score-level-info');const livesEl=document.getElementById('lives');const missedEl=document.getElementById('missed');const comboDisplay=document.getElementById('combo-display');const finalScoreEl=document.getElementById('final-score');const resumeInfo=document.getElementById('resume-info');const resumeButtons=document.getElementById('resume-buttons');const resumeButton=document.getElementById('resumeButton');const resetButton=document.getElementById('resetButton');const speedSlider=document.getElementById('speed-slider');const saveButton=document.getElementById('saveButton');const badgeCreator=document.getElementById('badge-creator');const nameInput=document.getElementById('nameInput');const getBadgeButton=document.getElementById('getBadgeButton');
+        const canvas=document.getElementById('gameCanvas');const ctx=canvas.getContext('2d');const container=document.getElementById('game-container');const modal=document.getElementById('modal');const startButton=document.getElementById('startButton');const scoreLevelInfoEl=document.getElementById('score-level-info');const livesEl=document.getElementById('lives');const missedEl=document.getElementById('missed');const comboDisplay=document.getElementById('combo-display');const finalScoreEl=document.getElementById('final-score');const resumeInfo=document.getElementById('resume-info');const resumeButtons=document.getElementById('resume-buttons');const resumeButton=document.getElementById('resumeButton');const resetButton=document.getElementById('resetButton');const speedSlider=document.getElementById('speed-slider');const badgeCreator=document.getElementById('badge-creator');const nameInput=document.getElementById('nameInput');const getBadgeButton=document.getElementById('getBadgeButton');
         const MAX_LIVES=5;const MAX_PARTICLES=300;const INACTIVITY_TIMEOUT=12*60;let gameState='start';let score=0,lives=MAX_LIVES,combo=0,currentLevel=0;let missedFruitCounter=0;let fruits=[],particles=[],sliceTrail=[];let isSlicing=false;let spawnTimer=0,gameLoopId=null,inactivityTimer=0;let speedMultiplier=1.0;
         
         const levels = Array.from({ length: 50 }, (_, i) => ({
@@ -124,7 +121,7 @@
         startButton.textContent='Resume';document.getElementById('settings-panel').style.display='none';}
         modal.classList.remove('invisible');}
         
-        function startGame(){if(gameLoopId)cancelAnimationFrame(gameLoopId);gameState='playing';saveButton.classList.remove('hidden');updateUI();modal.classList.add('invisible');gameLoop();}
+        function startGame(){if(gameLoopId)cancelAnimationFrame(gameLoopId);gameState='playing';updateUI();modal.classList.add('invisible');gameLoop();}
         function resetGame(isNewGame=true){score=0;lives=MAX_LIVES;currentLevel=0;missedFruitCounter=0;combo=0;spawnTimer=0;fruits=[];particles=[];if(isNewGame){localStorage.removeItem('fruitSlicerSaveState');startGame();}}
         
         function resumeGame(savedState) {
@@ -147,7 +144,7 @@
         
         function pauseGame(reason='inactivity'){if(gameState!=='playing')return;gameState='paused';if(gameLoopId){cancelAnimationFrame(gameLoopId);gameLoopId=null;}
         configureModal('pause',{reason});}
-        function gameOver(){gameState='gameOver';saveButton.classList.add('hidden');if(gameLoopId){cancelAnimationFrame(gameLoopId);gameLoopId=null;}
+        function gameOver(){gameState='gameOver';if(gameLoopId){cancelAnimationFrame(gameLoopId);gameLoopId=null;}
         saveGameState();configureModal('gameOver');}
         
         function updateUI(){const levelInfo=levels[currentLevel]||levels[levels.length-1];scoreLevelInfoEl.innerHTML=`<span>Lv: ${currentLevel+1}</span> <span class="text-white/70">(${score}/${levelInfo.target})</span>`;livesEl.innerHTML='❤️'.repeat(lives)+'🖤'.repeat(MAX_LIVES-lives);if(missedFruitCounter>0&&lives>0&&gameState==='playing'){missedEl.textContent=`Missed: ${missedFruitCounter}/5`;missedEl.classList.remove('hidden');}else{missedEl.classList.add('hidden');}
@@ -233,10 +230,15 @@
         speedSlider.value=speedMultiplier;}
         function saveGameState(){localStorage.setItem('fruitSlicerSaveState',JSON.stringify({score,level:currentLevel,lives,missed:missedFruitCounter}));}
         function loadGameState(){const s=localStorage.getItem('fruitSlicerSaveState');if(s)return JSON.parse(s);return null;}
-        function setupPWA(){const m={"name":"Glossy Fruit Slicer","short_name":"Fruit Slicer","start_url":".","display":"standalone","background_color":"#3d405b","theme_color":"#3d405b","description":"A juicy fruit slicing game.","icons":[{"src":"https://raw.githubusercontent.com/Mirjan-Ali-Sha/fruitslicer/main/Fruit_Slicer-icon.png","sizes":"192x192","type":"image/png"}]};const mb=new Blob([JSON.stringify(m)],{type:'application/json'});document.querySelector('#manifest').setAttribute('href',URL.createObjectURL(mb));if('serviceWorker'in navigator){const sc=`const CN='fruit-slicer-cache-v15';self.addEventListener('install',e=>e.waitUntil(caches.open(CN).then(c=>c.addAll(['.','https://cdn.tailwindcss.com','https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap']))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;const sb=new Blob([sc],{type:'application/javascript'});navigator.serviceWorker.register(URL.createObjectURL(sb));}}
+        function setupPWA(){const m={"name":"Fruit Slicer - Offline","short_name":"Fruit Slicer","start_url":".","display":"standalone","background_color":"#3d405b","theme_color":"#3d405b","description":"A juicy fruit slicing game.","icons":[{"src":"https://raw.githubusercontent.com/Mirjan-Ali-Sha/fruitslicer/main/Fruit_Slicer-icon.png","sizes":"192x192","type":"image/png"}]};const mb=new Blob([JSON.stringify(m)],{type:'application/json'});document.querySelector('#manifest').setAttribute('href',URL.createObjectURL(mb));if('serviceWorker'in navigator){const sc=`const CN='fruit-slicer-cache-v15';self.addEventListener('install',e=>e.waitUntil(caches.open(CN).then(c=>c.addAll(['.','https://cdn.tailwindcss.com','https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap']))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;const sb=new Blob([sc],{type:'application/javascript'});navigator.serviceWorker.register(URL.createObjectURL(sb));}}
         
         function main(){loadSettings();setupPWA();resizeCanvas();
-        setTimeout(()=>{const s=document.getElementById('splash-screen');s.classList.add('hidden');const savedState=loadGameState();if(savedState){configureModal('resume',savedState);}else{configureModal('start');}
+        setTimeout(()=>{const s=document.getElementById('splash-screen');s.classList.add('hidden');const savedState=loadGameState();
+        if(savedState){
+            configureModal('resume',savedState);
+        } else {
+            configureModal('start');
+        }
         nameInput.value = localStorage.getItem('fruitSlicerPlayerName') || '';
         s.addEventListener('animationend',()=>{if(s.style.opacity==0)s.style.display='none';},{once:true});},3000);
         
@@ -245,7 +247,10 @@
         resetButton.addEventListener('click',()=>{resetGame(true);configureModal('start');});
         resumeButton.addEventListener('click',()=>resumeGame(loadGameState()));
         speedSlider.addEventListener('input',(e)=>{speedMultiplier=parseFloat(e.target.value);saveSettings();});
+        
+        // This event listener was removed in the previous turn by mistake. It's now restored.
         saveButton.addEventListener('click', () => { if(gameState === 'playing') { saveGameState(); pauseGame('manualSave'); } });
+
         getBadgeButton.addEventListener('click', generateAndDownloadBadge);
         window.addEventListener('resize',resizeCanvas);
         canvas.addEventListener('mousedown',handleSliceStart);canvas.addEventListener('mousemove',handleSliceMove);window.addEventListener('mouseup',handleSliceEnd);
