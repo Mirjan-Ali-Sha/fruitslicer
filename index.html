@@ -208,8 +208,60 @@
         function createParticles(fruit,count,colors){if(particles.length>=MAX_PARTICLES)return;
         for(let i=0;i<count;i++){const vx=(Math.random()-0.5)*6;const vy=(Math.random()-0.5)*6;particles.push(new Particle(fruit.x,fruit.y,Math.random()*4+2,colors,vx,vy));}}
         
-        async function generateAndDownloadBadge() {const name=nameInput.value||'Player';localStorage.setItem('fruitSlicerPlayerName',name);const badgeCanvas=document.createElement('canvas');badgeCanvas.width=800;badgeCanvas.height=600;const badgeCtx=badgeCanvas.getContext('2d');const bgGradient=badgeCtx.createRadialGradient(400,300,0,400,300,500);bgGradient.addColorStop(0,'#84a59d');bgGradient.addColorStop(1,'#3d405b');badgeCtx.fillStyle=bgGradient;badgeCtx.fillRect(0,0,800,600);try{const img=new Image();img.crossOrigin="anonymous";img.src="https://raw.githubusercontent.com/Mirjan-Ali-Sha/fruitslicer/main/Fruit_Slicer-icon.png";await img.decode();badgeCtx.drawImage(img,336,50,128,128);}catch(e){console.error("Could not load badge icon.",e);}
-        badgeCtx.font="bold 70px 'Fredoka One',cursive";badgeCtx.fillStyle="white";badgeCtx.textAlign="center";badgeCtx.shadowColor='rgba(240,72,117,0.8)';badgeCtx.shadowBlur=15;badgeCtx.fillText(name,400,250);badgeCtx.shadowBlur=0;badgeCtx.font="40px 'Fredoka One',cursive";badgeCtx.fillStyle="rgba(255,255,255,0.8)";const statusText=gameState==='gameOver'?'Game Over':`Level ${currentLevel+1} Cleared!`;badgeCtx.fillText(statusText,400,320);badgeCtx.font="bold 50px 'Fredoka One',cursive";badgeCtx.fillStyle="#facc15";badgeCtx.fillText(`Score: ${score}`,400,400);badgeCtx.font="20px 'Fredoka One',cursive";badgeCtx.fillStyle="rgba(255,255,255,0.6)";badgeCtx.fillText("Fruit Slicer by Mirjan Ali Sha",400,550);const dataUrl=badgeCanvas.toDataURL('image/png');const a=document.createElement('a');a.href=dataUrl;a.download=`FruitSlicer-Badge-Level-${currentLevel+1}.png`;a.click();}
+        async function generateAndDownloadBadge() {
+            const name = nameInput.value || 'Player';
+            localStorage.setItem('fruitSlicerPlayerName', name);
+            const badgeCanvas = document.createElement('canvas');
+            badgeCanvas.width = 800; badgeCanvas.height = 600;
+            const badgeCtx = badgeCanvas.getContext('2d');
+
+            const bgGradient = badgeCtx.createRadialGradient(400, 300, 0, 400, 300, 500);
+            bgGradient.addColorStop(0, '#84a59d');
+            bgGradient.addColorStop(1, '#3d405b');
+            badgeCtx.fillStyle = bgGradient;
+            badgeCtx.fillRect(0, 0, 800, 600);
+
+            try {
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.src = "https://raw.githubusercontent.com/Mirjan-Ali-Sha/fruitslicer/main/Fruit_Slicer-icon.png";
+                await img.decode();
+                badgeCtx.drawImage(img, 336, 50, 128, 128);
+            } catch (e) {
+                console.error("Could not load badge icon.", e);
+            }
+
+            badgeCtx.font = "bold 70px 'Fredoka One', cursive";
+            badgeCtx.fillStyle = "white";
+            badgeCtx.textAlign = "center";
+            badgeCtx.shadowColor = 'rgba(240, 72, 117, 0.8)';
+            badgeCtx.shadowBlur = 15;
+            badgeCtx.fillText(name, 400, 250);
+
+            badgeCtx.shadowBlur = 0;
+            badgeCtx.font = "40px 'Fredoka One', cursive";
+            badgeCtx.fillStyle = "rgba(255, 255, 255, 0.8)";
+            
+            // Corrected logic for displaying the right level on the badge
+            const levelForBadge = (gameState === 'paused' && currentLevel > 0) ? currentLevel : currentLevel + 1;
+            const statusText = gameState === 'gameOver' ? `Game Over on Level ${levelForBadge}` : `Level ${levelForBadge} Cleared!`;
+            badgeCtx.fillText(statusText, 400, 320);
+
+            badgeCtx.font = "bold 50px 'Fredoka One', cursive";
+            badgeCtx.fillStyle = "#facc15";
+            badgeCtx.fillText(`Score: ${score}`, 400, 400);
+
+            badgeCtx.font = "20px 'Fredoka One', cursive";
+            badgeCtx.fillStyle = "rgba(255, 255, 255, 0.6)";
+            badgeCtx.fillText("Fruit Slicer by Mirjan Ali Sha", 400, 550);
+
+            const dataUrl = badgeCanvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = `FruitSlicer-Badge-${gameState === 'gameOver' ? 'GameOver' : 'Level'}-${levelForBadge}.png`;
+            a.click();
+        }
+
 
         function gameLoop(){if(gameState!=='playing'){gameLoopId=null;return;};inactivityTimer++;if(inactivityTimer>INACTIVITY_TIMEOUT){pauseGame();return;}
         ctx.clearRect(0,0,canvas.width,canvas.height);if(++spawnTimer>=100){spawnTimer=0;spawnFruit();}
