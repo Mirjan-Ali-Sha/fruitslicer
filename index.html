@@ -173,8 +173,12 @@
         update(){this.vy+=this.gravity;this.x+=this.vx;this.y+=this.vy;this.life--;this.alpha=this.life/100;}
         draw(){ctx.save();ctx.globalAlpha=this.alpha;const g=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.radius);g.addColorStop(0,this.color[0]);g.addColorStop(1,this.color[1]);ctx.fillStyle=g;ctx.beginPath();ctx.arc(this.x,this.y,this.radius,0,Math.PI*2);ctx.fill();ctx.restore();}}
         
-        function spawnFruit(){const levelInfo=levels[currentLevel]||levels[levels.length-1];const side=levelInfo.directions[Math.floor(Math.random()*levelInfo.directions.length)];const r=Math.random()*20+(canvas.width/18);let x,y,vx,vy;const baseSpeed=(Math.random()*2+2.0)*Math.sqrt(canvas.height/500)*speedMultiplier;
-        switch(side){case'top':x=Math.random()*(canvas.width-r*2)+r;y=-r;vx=(Math.random()-0.5)*baseSpeed;vy=baseSpeed;break;case'left':x=-r;y=Math.random()*(canvas.height-r*2)+r;vx=baseSpeed;vy=(Math.random()-0.5)*baseSpeed;break;case'right':x=canvas.width+r;y=Math.random()*(canvas.height-r*2)+r;vx=-baseSpeed;vy=(Math.random()-0.5)*baseSpeed;break;default:x=Math.random()*(canvas.width-r*2)+r;y=canvas.height+r;const a=Math.random()*(Math.PI/2)+Math.PI/4;vx=Math.cos(a)*baseSpeed*(Math.random()<0.5?1:-1);vy=-Math.sin(a)*baseSpeed;break;}
+        function spawnFruit(){const levelInfo=levels[currentLevel]||levels[levels.length-1];const side=levelInfo.directions[Math.floor(Math.random()*levelInfo.directions.length)];const r=Math.random()*20+(canvas.width/18);let x,y,vx,vy;
+        const baseSpeed=(Math.random()*1.0 + 2.8)*Math.sqrt(canvas.height/500)*speedMultiplier;
+        
+        switch(side){case'top':x=Math.random()*(canvas.width-r*2)+r;y=-r;vx=(Math.random()-0.5)*baseSpeed;vy=baseSpeed;break;case'left':x=-r;y=Math.random()*(canvas.height-r*2)+r;vx=baseSpeed;vy=(Math.random()-0.5)*baseSpeed;break;case'right':x=canvas.width+r;y=Math.random()*(canvas.height-r*2)+r;vx=-baseSpeed;vy=(Math.random()-0.5)*baseSpeed;break;default:x=Math.random()*(canvas.width-r*2)+r;y=canvas.height+r;
+        const a = (Math.random() * (Math.PI / 3)) + (Math.PI / 3); // Range: 60 to 120 degrees
+        vx=Math.cos(a)*baseSpeed*(Math.random()<0.5?1:-1);vy=-Math.sin(a)*baseSpeed;break;}
         const bombChance=0.15+(currentLevel*0.005);if(lives<MAX_LIVES&&Math.random()<0.05)fruits.push(new LifeFruit(x,y,r,vx,vy));
         else if(Math.random()<bombChance&&score>30){const availableBombs=bombTypes.filter(b=>currentLevel>=b.minLevel);const bombType=availableBombs[Math.floor(Math.random()*availableBombs.length)];fruits.push(new Bomb(x,y,r,vx,vy,bombType));}
         else fruits.push(new Fruit(x,y,r,fruitTypes[Math.floor(Math.random()*fruitTypes.length)],vx,vy));}
@@ -268,8 +272,8 @@
         getBadgeButton.addEventListener('click', generateAndDownloadBadge);
         window.addEventListener('resize',resizeCanvas);
         canvas.addEventListener('mousedown',handleSliceStart);canvas.addEventListener('mousemove',handleSliceMove);window.addEventListener('mouseup',handleSliceEnd);
-        canvas.addEventListener('touchstart',(e)=>{e.preventDefault();handleSliceStart(e);},{passive:false});
-        canvas.addEventListener('touchmove',(e)=>{e.preventDefault();handleSliceMove(e);},{passive:false});
+        canvas.addEventListener('touchstart',(e)=>{e.preventDefault();if(e.touches[0])handleSliceStart(e.touches[0]);},{passive:false});
+        canvas.addEventListener('touchmove',(e)=>{e.preventDefault();if(e.touches[0])handleSliceMove(e.touches[0]);},{passive:false});
         window.addEventListener('touchend',handleSliceEnd);}
         main();
     </script>
